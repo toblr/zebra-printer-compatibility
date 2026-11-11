@@ -1,93 +1,111 @@
-# Zebra GK420d ohne Herstellertreiber
+# Zebra printer compatibility for Windows on ARM and macOS
 
-Den Zebra GK420d unter **macOS** und **Windows on ARM** als normalen Drucker nutzen,
-mit frei definierbaren Etikettenformaten.
+Use a Zebra GK420d as a regular printer on **macOS** and **Windows on ARM**, without
+Zebra's driver and with label sizes you define yourself.
 
-Zebras eigener Windows-Treiber läuft nur auf x86/x64, und unter macOS ist die
-Einrichtung über die CUPS-Weboberfläche umständlich. Dieses Projekt umgeht beides:
-Der GK420d spricht ZPL, also wird die Druckseite mit 203 dpi als Bild gerendert und
-als ZPL an Port 9100 des Druckers geschickt. Ein Zebra-Treiber wird nicht gebraucht.
+Zebra's own Windows driver only runs on x86/x64, and setting the printer up on macOS
+through the CUPS web interface is cumbersome. This project avoids both. The GK420d
+speaks ZPL, so the printed page is rendered as a 203 dpi image and sent to the
+printer as ZPL on port 9100. No Zebra driver is needed.
 
-> **Teststand:** Bisher nur gegen einen simulierten Drucker geprüft, nicht auf einem
-> echten GK420d, einem echten Mac oder unter Windows. Details unter [Teststand](#teststand).
-> Rückmeldungen aus dem echten Betrieb sind willkommen.
+## Compatibility
 
-## Die Optionen im Überblick
+We have only tested this with the **Zebra GK420d**.
 
-| | macOS | Windows on ARM (und x64) |
+It may also work with other, older Zebra printers that meet the same conditions:
+
+- the printer speaks **ZPL** (ZPL II), not only EPL
+- it has a **network connection** and accepts raw print jobs on **port 9100**
+- it prints at **203 dpi** with a print width of up to 104 mm
+
+Candidates include the GK420t, GX420d/GX420t and ZD410/ZD420, all untested. Feedback
+on other models is very welcome; please open an issue and mention the model and
+platform.
+
+Not supported:
+
+- printers connected via USB only
+- printers that speak EPL only (for example the LP 2844 without the "-Z")
+- 300 dpi models such as the GX430t, unless adjusted. On Windows, set `dpi` in the
+  configuration; on macOS, the printer description is currently fixed to 203 dpi.
+
+## Options at a glance
+
+| | macOS | Windows on ARM (and x64) |
 |---|---|---|
-| Ordner | `macOS/` | `Windows/` |
-| Start | `Zebra-installieren.command` | `install.cmd` |
-| Was passiert | Legt eine Druckerwarteschlange mit eigener Druckerbeschreibung (PPD) an | Installiert die „Zebra-Brücke“ als Hintergrundprogramm und legt einen IPP-Drucker an |
-| Zusätzliche Software | keine, nutzt den in macOS enthaltenen Filter `rastertolabel` | `zebra-bruecke.exe` (liegt bei, Quellcode in `Quellcode/`) |
-| Administratorrechte | ja (Admin-Konto, ggf. Passwortabfrage) | ja (einmalige Abfrage) |
-| Ergebnis | Drucker „Zebra GK420d“ in jedem Druckdialog | Drucker „Zebra GK420d“ in jedem Druckdialog |
-| Formate | `etiketten.txt`, zusätzlich freie Größe im Druckdialog | `etiketten.txt` |
-| Entfernen | `lpadmin -x Zebra_GK420d` | `deinstallieren.cmd` |
+| Folder | `macOS/` | `Windows/` |
+| Run | `Zebra-installieren.command` | `install.cmd` |
+| What it does | Creates a print queue with a custom printer description (PPD) | Installs the "Zebra bridge" as a background program and adds an IPP printer |
+| Additional software | none; uses the `rastertolabel` filter that ships with macOS | `zebra-bruecke.exe` (included; source in `Quellcode/`) |
+| Admin rights | yes (admin account, may ask for a password) | yes (one prompt) |
+| Result | Printer "Zebra GK420d" in every print dialog | Printer "Zebra GK420d" in every print dialog |
+| Label sizes | `etiketten.txt`, plus custom size in the print dialog | `etiketten.txt` |
+| Remove | `lpadmin -x Zebra_GK420d` | `deinstallieren.cmd` |
 
-## Voraussetzungen
+File names, installer messages and the bridge's status page are in German.
 
-- Der Drucker hängt im Netzwerk und hat eine feste IP-Adresse.
-- Port 9100 des Druckers ist vom Rechner aus erreichbar.
-- Der Drucker steht auf ZPL (Auslieferungszustand), nicht auf EPL-Zeilenmodus.
+## Requirements
 
-USB-Anschluss wird nicht unterstützt.
+- The printer is on the network and has a fixed IP address.
+- Port 9100 on the printer is reachable from the computer.
+- The printer is set to ZPL (factory default), not to EPL line mode.
 
-## Installation unter macOS
+## Installation on macOS
 
-1. Ordner `macOS` auf den Mac kopieren.
-2. `Zebra-installieren.command` doppelklicken und die IP-Adresse des Druckers eingeben.
-   Beim ersten Mal über Rechtsklick > „Öffnen“ starten, weil das Skript nicht signiert ist.
-3. Im Druckdialog „Zebra GK420d“ wählen. Die Formate stehen unter „Papierformat“,
-   Schwärzung und Geschwindigkeit unter „Druckeroptionen“.
+1. Copy the `macOS` folder to the Mac.
+2. Double-click `Zebra-installieren.command` and enter the printer's IP address.
+   The first time, right-click it and choose "Open", because the script is not signed.
+3. Choose "Zebra GK420d" in the print dialog. Label sizes appear under "Paper Size",
+   darkness and speed under "Printer Features".
 
-Aufruf im Terminal, auch für mehrere Drucker:
+From the Terminal, also for several printers:
 
 ```sh
-./Zebra-installieren.command 192.168.1.50              # Name: Zebra_GK420d
-./Zebra-installieren.command 192.168.1.51 Zebra_Lager  # zweiter Drucker
+./Zebra-installieren.command 192.168.1.50              # name: Zebra_GK420d
+./Zebra-installieren.command 192.168.1.51 Zebra_Lager  # second printer
 ```
 
-Falls der Doppelklick mit „keine Berechtigung“ scheitert, hat die Datei beim Herunterladen
-ihr Ausführungsrecht verloren:
+If double-clicking fails with "permission denied", the file lost its executable bit
+while downloading (this happens with "Download ZIP"):
 
 ```sh
 chmod +x Zebra-installieren.command
 ```
 
-## Installation unter Windows
+## Installation on Windows
 
-1. Ordner `Windows` auf den Rechner kopieren.
-2. `install.cmd` doppelklicken, die Administratorabfrage bestätigen und die IP-Adresse eingeben.
-3. Im Druckdialog „Zebra GK420d“ wählen.
+1. Copy the `Windows` folder to the computer.
+2. Double-click `install.cmd`, confirm the administrator prompt and enter the
+   printer's IP address.
+3. Choose "Zebra GK420d" in the print dialog.
 
-Das Skript erkennt ARM64 und x64 selbst. Es
+The script detects ARM64 and x64 on its own. It
 
-- kopiert die Brücke nach `C:\Program Files\ZebraBruecke`,
-- startet sie bei jedem Systemstart im Hintergrund (geplante Aufgabe `ZebraBruecke`),
-- legt den Drucker über den in Windows eingebauten IPP-Treiber an
+- copies the bridge to `C:\Program Files\ZebraBruecke`,
+- starts it in the background at every system start (scheduled task `ZebraBruecke`),
+- adds the printer through the IPP driver built into Windows
   (`http://127.0.0.1:631/ipp/print`).
 
-Die Brücke lauscht nur lokal auf `127.0.0.1:631` und ist aus dem Netzwerk nicht erreichbar.
+The bridge only listens on `127.0.0.1:631` and cannot be reached from the network.
 
 | | |
 |---|---|
-| Statusseite mit Testdruck | <http://127.0.0.1:631/> |
-| Protokoll | `C:\Program Files\ZebraBruecke\zebra-bruecke.log` |
-| Entfernen | `deinstallieren.cmd` |
+| Status page with test print | <http://127.0.0.1:631/> |
+| Log | `C:\Program Files\ZebraBruecke\zebra-bruecke.log` |
+| Remove | `deinstallieren.cmd` |
 
-Die exe-Dateien sind nicht signiert. Windows SmartScreen kann beim ersten Start warnen
-(„Weitere Informationen“ > „Trotzdem ausführen“). Wer das nicht möchte, baut die exe
-selbst, siehe [Selbst bauen](#selbst-bauen).
+The exe files are not signed. Windows SmartScreen may warn on first start
+("More info" > "Run anyway"). If you prefer not to run them, build them yourself;
+see [Building from source](#building-from-source).
 
-Falls der Drucker nicht automatisch angelegt wird: Einstellungen > Bluetooth und Geräte >
-Drucker und Scanner > Gerät hinzufügen > Manuell hinzufügen > „Freigegebenen Drucker über
-den Namen auswählen“ und `http://127.0.0.1:631/ipp/print` eintragen.
+If the printer is not added automatically: Settings > Bluetooth & devices >
+Printers & scanners > Add device > Add manually > "Select a shared printer by name",
+and enter `http://127.0.0.1:631/ipp/print`.
 
-## Etikettenformate
+## Label sizes
 
-In beiden Ordnern liegt eine `etiketten.txt`. Eine Zeile pro Format in Millimetern,
-optional mit Namen. Die erste Zeile ist das Standardformat.
+Both folders contain an `etiketten.txt`. One line per size in millimetres, optionally
+followed by a name. The first line is the default size.
 
 ```text
 100x150 Versandetikett
@@ -95,63 +113,59 @@ optional mit Namen. Die erste Zeile ist das Standardformat.
 57x32 Preisetikett
 ```
 
-Nach einer Änderung das Installationsskript der jeweiligen Plattform erneut starten.
+After a change, run the installer for that platform again.
 
-Grenzen: Breite 20 bis 108 mm (bedruckbar 104 mm), Höhe 10 bis 990 mm.
+Limits: width 20 to 108 mm (printable 104 mm), height 10 to 990 mm.
 
-## Einstellungen
+## Settings
 
-**macOS:** im Druckdialog unter „Druckeroptionen“ (Schwärzung, Geschwindigkeit,
-Etikettenerkennung).
+**macOS:** in the print dialog under "Printer Features" (darkness, speed, media tracking).
 
-**Windows:** in `C:\Program Files\ZebraBruecke\zebra-bruecke.json`. Danach `install.cmd`
-erneut ausführen oder den Rechner neu starten.
+**Windows:** in `C:\Program Files\ZebraBruecke\zebra-bruecke.json`. Afterwards, run
+`install.cmd` again or restart the computer.
 
-| Schlüssel | Bedeutung | Standard |
+| Key | Meaning | Default |
 |---|---|---|
-| `printer_address` | IP und Port des Druckers | vom Installer gesetzt |
-| `darkness` | Schwärzung 0 bis 30, `-1` = Druckereinstellung | `-1` |
-| `speed` | Geschwindigkeit 2 bis 5 Zoll/s, `0` = Druckereinstellung | `0` |
-| `media_tracking` | `gap` (Etiketten mit Lücke), `mark`, `continuous`, leer = Druckereinstellung | `gap` |
-| `rotate180` | Druckbild um 180° drehen | `false` |
-| `dither` | Graustufen rastern (für Logos und Verläufe) statt hart schwarz/weiß | `false` |
-| `threshold` | Schwelle in Prozent, ab der Grau schwarz wird (ohne `dither`) | `50` |
+| `printer_address` | Printer IP and port | set by the installer |
+| `dpi` | Printer resolution | `203` |
+| `max_print_width_mm` | Printable width | `104` |
+| `darkness` | Darkness 0 to 30, `-1` = printer setting | `-1` |
+| `speed` | Speed 2 to 5 inches/s, `0` = printer setting | `0` |
+| `media_tracking` | `gap` (labels with gaps), `mark`, `continuous`, empty = printer setting | `gap` |
+| `rotate180` | Rotate the print by 180° | `false` |
+| `dither` | Dither grey tones (for logos and gradients) instead of hard black/white | `false` |
+| `threshold` | Percentage at which grey becomes black (without `dither`) | `50` |
 
-## Fehlersuche
+## Troubleshooting
 
-| Problem | Abhilfe |
+| Problem | Fix |
 |---|---|
-| Es kommt nichts am Drucker an | `ping <Drucker-IP>` und Port 9100 prüfen. Unter Windows die Statusseite öffnen und „Testetikett drucken“ wählen. |
-| Druckbild verschoben, Etikett läuft durch | Vorschubtaste gedrückt halten, bis die LED zweimal blinkt (Kalibrierung), dann erneut drucken. |
-| Druck steht auf dem Kopf | macOS druckt wie der Standard-Zebra-Filter um 180° gedreht. Unter Windows `rotate180` umstellen, damit beide gleich laufen. |
-| Graue Flächen werden schwarz (Windows) | `dither` auf `true` setzen oder `threshold` senken. |
-| Druck zu hell oder zu dunkel | macOS: „Darkness“ in den Druckeroptionen. Windows: `darkness`. |
-| Neues Format erscheint nicht | Installationsskript nach dem Ändern der `etiketten.txt` erneut starten. |
-| Windows: Brücke antwortet nicht | Protokoll ansehen. Häufigste Ursache: Port 631 ist schon belegt. |
+| Nothing reaches the printer | Check `ping <printer IP>` and port 9100. On Windows, open the status page and choose "Testetikett drucken" (print test label). |
+| Print is offset, labels feed through | Hold the feed button until the LED flashes twice (calibration), then print again. |
+| Print is upside down | macOS prints rotated by 180°, like the standard Zebra filter. On Windows, toggle `rotate180` so both behave the same. |
+| Grey areas turn black (Windows) | Set `dither` to `true` or lower `threshold`. |
+| Print too light or too dark | macOS: "Darkness" under Printer Features. Windows: `darkness`. |
+| New size does not appear | Run the installer again after editing `etiketten.txt`. |
+| Windows: bridge does not respond | Check the log. The most common cause is that port 631 is already in use. |
 
-## So funktioniert es
+## How it works
 
-**macOS:** Das Skript erzeugt aus `zebra-gk420d.ppd.template` und `etiketten.txt` eine
-Druckerbeschreibung und richtet damit per `lpadmin` eine Warteschlange auf
-`socket://<IP>:9100` ein. Die Umwandlung nach ZPL übernimmt der mit macOS gelieferte
-CUPS-Filter `rastertolabel`.
+**macOS:** The script builds a printer description from `zebra-gk420d.ppd.template`
+and `etiketten.txt` and uses `lpadmin` to create a queue on `socket://<IP>:9100`.
+The conversion to ZPL is done by the `rastertolabel` CUPS filter that ships with macOS.
 
-**Windows:** Die Brücke ist ein kleiner lokaler IPP-Everywhere-Drucker. Windows schickt
-ihr die Seite als PWG-Raster über den eingebauten „Microsoft IPP Class Driver“, die Brücke
-wandelt sie in ein ZPL-Grafiketikett (`^GFA`, komprimiert) um und sendet es an den Drucker.
-Fertiges ZPL wird unverändert durchgereicht.
+**Windows:** The bridge is a small local IPP Everywhere printer. Windows sends it the
+page as PWG raster through the built-in "Microsoft IPP Class Driver". The bridge
+converts it into a compressed ZPL graphic label (`^GFA`) and sends it to the printer.
+Ready-made ZPL is passed through unchanged.
 
 ```text
-Anwendung -> Windows-Druckdialog -> IPP (127.0.0.1:631) -> zebra-bruecke -> ZPL -> Drucker:9100
+Application -> Windows print dialog -> IPP (127.0.0.1:631) -> zebra-bruecke -> ZPL -> printer:9100
 ```
 
-Andere ZPL-Drucker mit 203 dpi sollten nach demselben Prinzip funktionieren, sind aber
-nicht geprüft. Für andere Auflösungen `dpi` und `max_print_width_mm` in der
-Konfiguration anpassen.
+## Building from source
 
-## Selbst bauen
-
-Die Brücke ist in Go geschrieben und nutzt nur die Standardbibliothek.
+The bridge is written in Go and uses only the standard library.
 
 ```sh
 cd Quellcode
@@ -159,29 +173,13 @@ GOOS=windows GOARCH=arm64 go build -trimpath -ldflags "-s -w" -o ../Windows/zebr
 GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "-s -w" -o ../Windows/zebra-bruecke-x64.exe .
 ```
 
-Sie läuft auch unter Linux und macOS, etwa zum Testen:
+It also runs on Linux and macOS, for example for testing:
 
 ```sh
 go build -o zebra-bruecke . && ./zebra-bruecke -printer 192.168.1.50 -listen 127.0.0.1:6310
 ```
 
-## Teststand
+## Disclaimer
 
-Geprüft in einer Linux-Testumgebung gegen einen simulierten Drucker:
-
-- macOS-Druckerbeschreibung mit dem CUPS-Filter `rastertolabel`
-- Brücke mit CUPS als IPP-Client: Standardformat, weitere Formate, freie Größe, Kopien,
-  1-Bit- und Graustufen-Raster
-- Die erzeugten ZPL-Daten wurden zurückdekodiert und mit der Vorlage verglichen.
-
-Noch nicht geprüft:
-
-- Druck auf einem echten GK420d
-- `Zebra-installieren.command` auf einem echten Mac
-- `install.ps1` und das Zusammenspiel mit dem Windows-IPP-Treiber, insbesondere die
-  Anzeige eigener Formate im Druckdialog
-
-## Hinweise
-
-Dieses Projekt steht in keiner Verbindung zu Zebra Technologies. „Zebra“ und „GK420d“
-sind Marken ihres Inhabers. Nutzung auf eigene Verantwortung.
+This project is not affiliated with Zebra Technologies. "Zebra" and "GK420d" are
+trademarks of their respective owner. Use at your own risk.
