@@ -1,4 +1,7 @@
 *PPD-Adobe: "4.3"
+*% Zebra GK420d (ZPL, 203 dpi). Generated with the CUPS PPD compiler from the
+*% Zebra ZPL definition in the CUPS sample driver and adapted.
+*% CUPS: Copyright Apple Inc. and OpenPrinting, Apache License 2.0.
 *FormatVersion: "4.3"
 *FileVersion: "1.0"
 *LanguageVersion: English

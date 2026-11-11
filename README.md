@@ -179,6 +179,14 @@ It also runs on Linux and macOS, for example for testing:
 go build -o zebra-bruecke . && ./zebra-bruecke -printer 192.168.1.50 -listen 127.0.0.1:6310
 ```
 
+## License
+
+MIT, see [LICENSE](LICENSE).
+
+The macOS printer description (`macOS/zebra-gk420d.ppd.template`) is derived from the
+Zebra ZPL driver definition in [CUPS](https://github.com/OpenPrinting/cups), which is
+licensed under the Apache License 2.0. Details are in the LICENSE file.
+
 ## Disclaimer
 
 This project is not affiliated with Zebra Technologies. "Zebra" and "GK420d" are
