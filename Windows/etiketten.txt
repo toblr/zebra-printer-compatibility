@@ -1,0 +1,10 @@
+# Etikettenformate fuer den Zebra GK420d
+# Eine Zeile pro Format:  BREITE x HOEHE in mm, optional dahinter ein Name.
+# Die erste Zeile ist das Standardformat. Max. Breite 108 mm, max. Hoehe 990 mm.
+# Nach Aenderungen das Installationsskript erneut ausfuehren.
+100x150 Versandetikett
+100x100
+100x50
+76x51
+57x32
+50x25

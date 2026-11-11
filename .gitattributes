@@ -1,0 +1,6 @@
+# Zeilenenden festlegen, damit die Skripte auf ihrer Plattform laufen
+*.command text eol=lf
+*.template text eol=lf
+*.cmd     text eol=crlf
+*.ps1     text eol=crlf
+*.exe     binary
